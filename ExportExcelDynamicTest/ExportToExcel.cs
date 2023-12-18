@@ -1,9 +1,8 @@
-﻿using ExportExcelDynamicTest.Extensions;
+﻿using ExportExcelDynamicTest.CustomAttribute;
+using ExportExcelDynamicTest.Extensions;
+using Microsoft.Net.Http.Headers;
 using NPOI.SS.UserModel;
-using NPOI.Util;
 using NPOI.XSSF.UserModel;
-using Org.BouncyCastle.Asn1.X509.Qualified;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
@@ -30,14 +29,28 @@ namespace ExportExcelDynamicTest
             IRow headerRow = sheet.CreateRow(0);
             for (int i = 0; i < columnCount; i++)
             {
-                ICell cell = headerRow.CreateCell(i);
+                ICell cell;
+
+                PropertyInfo propertyInfo = propertyInfoList[i];
+
+                var hasPlaqueNo = propertyInfo.GetCustomAttribute<ExcelExportHasPlaqueNo>();
+                if (hasPlaqueNo != null)
+                {
+                    cell = headerRow.CreateCell(4);
+                }
+                else
+                {
+                    cell = headerRow.CreateCell(i);
+                }
+
                 if (i == 0)
                     cell.SetCellValue("ردیف");
                 else
                 {
-                    PropertyInfo propertyInfo = propertyInfoList[i];
                     string? headerName = (Attribute.GetCustomAttribute(propertyInfo, typeof(DisplayAttribute)) as DisplayAttribute)?.Name;
+
                     cell.SetCellValue(string.IsNullOrEmpty(headerName) ? propertyInfo.Name : headerName);
+
                 }
             }
 
@@ -65,7 +78,7 @@ namespace ExportExcelDynamicTest
 
         private static void PrepareValue(IWorkbook workbook, TModel entity, ICell cell, PropertyInfo propertyInfo)
         {
-            object value = propertyInfo.GetValue(entity);
+            object value = propertyInfo.GetValue(entity)!;
 
             if (propertyInfo.PropertyType.IsEnum)
             {
@@ -94,7 +107,16 @@ namespace ExportExcelDynamicTest
             else if (propertyInfo.PropertyType == typeof(bool)
                 || propertyInfo.PropertyType == typeof(bool?))
             {
-                cell.SetCellValue(value != null ? ((bool)value) == true ? "دارد" : "ندارد" : string.Empty);
+                var boolFa = propertyInfo.GetCustomAttribute<ExcelExportBoolFa>();
+                if (boolFa != null)
+                {
+                    cell.SetCellValue(value != null ? ((bool)value) == true ? boolFa.TrueValue : boolFa.FalseValue : string.Empty);
+                }
+                else
+                {
+                    cell.SetCellValue(value != null ? ((bool)value) == true ? "دارد" : "ندارد" : string.Empty);
+                }
+
             }
             else if (propertyInfo.PropertyType == typeof(DateTime)
                 || propertyInfo.PropertyType == typeof(DateTime?))

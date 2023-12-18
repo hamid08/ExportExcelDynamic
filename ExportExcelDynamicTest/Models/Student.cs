@@ -1,4 +1,5 @@
-﻿using ExportExcelDynamicTest.Enums;
+﻿using ExportExcelDynamicTest.CustomAttribute;
+using ExportExcelDynamicTest.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,6 +15,8 @@ namespace ExportExcelDynamicTest.Models
         [Display(Name = "میزان حقوق")]
         public long Salary { get; set; }
         [Display(Name = "دارای فرزند")]
+
+        [ExcelExportBoolFa("دارا می باشد","دارا نمی باشد")]
         public bool HasChild { get; set; }
         [Display(Name = "تاریخ استخدام")]
         public DateTime EnterDate { get; set; }
@@ -22,5 +25,8 @@ namespace ExportExcelDynamicTest.Models
         public int? Age { get; set; }
         [Display(Name = "زمان شروع شیفت")]
         public TimeSpan ShiftTime { get; set; }
+
+        [ExcelExportHasPlaqueNo()]
+        public string PlaqueNo { get; set; }
     }
 }
